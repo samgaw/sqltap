@@ -14,7 +14,7 @@ scalaVersion := "2.11.4"
 
 assemblySettings
 
-jarName in assembly := "sqltap_0.7.21.jar"
+jarName in assembly := { s"${name.value.toLowerCase}-${version.value}.jar" }
 
 fork in run := true
 
