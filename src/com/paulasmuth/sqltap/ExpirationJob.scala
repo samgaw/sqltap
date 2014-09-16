@@ -45,7 +45,7 @@ class ExpirationJob(worker: Worker, ctree: CTree) extends ReadyCallback[Record] 
       if (tuple._1 == primary_id) {
         val key = ctree.key(tuple._1, record_id.toString, tuple._2)
         handler.execute(worker, key)
-        keys = keys - tuple
+        keys = keys.filter(_ != tuple)
       }
     }
   }

@@ -42,7 +42,7 @@ object ReplicationFeed extends Worker with AbstractSQLConnectionPool {
     } else {
       val row = query.rows.last
       val position = row.last.toInt
-      val filename = row.first
+      val filename = row.head
 
       conn.start_binlog(filename, position)
     }
