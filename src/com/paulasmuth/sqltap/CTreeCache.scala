@@ -17,7 +17,7 @@ object CTreeCache {
 
     CTreeMarshal.serialize(ctree_buf, ctree.stack.head, ins)
 
-    val request = new CacheStoreRequest(key, buf)
+    val request = new CacheStoreRequest(key, buf, ctree.expire)
     request.worker = worker
 
     worker.cache.enqueue(request)

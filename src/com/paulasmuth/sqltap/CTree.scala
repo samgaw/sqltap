@@ -12,6 +12,7 @@ class CTree(doc: xml.Node) {
 
   val name  : String = elem.attr("name", true)
   val query : String = elem.attr("query", true)
+  val expire : Int = elem.attr("expire", false, "300").toInt
 
   val allow_conditions : Boolean =
     elem.attr("allow_conditions", false, "true").equals("true")
