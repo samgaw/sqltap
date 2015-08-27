@@ -46,6 +46,7 @@ class TableMapBinlogEvent(data: Array[Byte], ts: Long, fmt: FormatDescriptionBin
       case 0x0c => 0               // 0x0c DATETIME
       case 0x0d => 0               // 0x0d YEAR
       case 0x0f => read_int(2)     // 0x0f VARCHAR
+      case 0x11 => 0               // 0x11 TIMESTAMP2
       case 0x12 => 0               // 0x12 DATETIME2
       case 0xf6 => read_int(2)     // 0xf6 NEWDECIMAL
       case 0xfc => read_int(1)     // 0xfc BLOB
