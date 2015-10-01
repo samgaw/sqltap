@@ -14,6 +14,10 @@ import java.net.{InetSocketAddress,ConnectException}
 
 class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port : Int) extends TimeoutCallback {
 
+  private val CR = 13
+  private val LF = 10
+  private val SP = 32
+
   private val MC_STATE_INIT       = 0
   private val MC_STATE_CONN       = 1
   private val MC_STATE_IDLE       = 2
@@ -66,12 +70,12 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
     write_buf.put("get".getBytes)
 
     for (key <- keys) {
-      write_buf.put(32.toByte)
+      write_buf.put(SP.toByte)
       write_buf.put(key.getBytes("UTF-8"))
     }
 
-    write_buf.put(13.toByte)
-    write_buf.put(10.toByte)
+    write_buf.put(CR.toByte)
+    write_buf.put(LF.toByte)
     write_buf.flip
 
     state = MC_STATE_CMD_MGET
@@ -93,19 +97,19 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
 
     write_buf.clear
     write_buf.put("set".getBytes)
-    write_buf.put(32.toByte)
+    write_buf.put(SP.toByte)
     write_buf.put(key.getBytes("UTF-8"))
-    write_buf.put(32.toByte)
+    write_buf.put(SP.toByte)
     write_buf.put(48.toByte)
-    write_buf.put(32.toByte)
+    write_buf.put(SP.toByte)
     write_buf.put(request.expire.toString.getBytes("UTF-8"))
-    write_buf.put(32.toByte)
+    write_buf.put(SP.toByte)
     write_buf.put(len.toString.getBytes("UTF-8"))
-    write_buf.put(13.toByte)
-    write_buf.put(10.toByte)
+    write_buf.put(CR.toByte)
+    write_buf.put(LF.toByte)
     write_buf.put(buf)
-    write_buf.put(13.toByte)
-    write_buf.put(10.toByte)
+    write_buf.put(CR.toByte)
+    write_buf.put(LF.toByte)
     write_buf.flip
 
     state = MC_STATE_CMD_SET
@@ -120,10 +124,10 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
 
     write_buf.clear
     write_buf.put("delete".getBytes)
-    write_buf.put(32.toByte)
+    write_buf.put(SP.toByte)
     write_buf.put(key.getBytes("UTF-8"))
-    write_buf.put(13.toByte)
-    write_buf.put(10.toByte)
+    write_buf.put(CR.toByte)
+    write_buf.put(LF.toByte)
     write_buf.flip
 
     state = MC_STATE_CMD_DELETE
@@ -171,7 +175,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
 
         pos = cur
       } else {
-        if (read_buf.get(cur) == 10) {
+        if (read_buf.get(cur) == LF) {
           next(new String(read_buf.array, pos, cur - 1 - pos, "UTF-8"))
           pos = cur + 1
         }
