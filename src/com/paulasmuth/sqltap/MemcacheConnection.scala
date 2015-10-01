@@ -226,7 +226,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
 
     pool.close(this)
     sock.close()
-    Statistics.decr('sql_connections_open)
+    Statistics.decr('memcache_connections_open)
   }
 
   def timeout() : Unit = {
