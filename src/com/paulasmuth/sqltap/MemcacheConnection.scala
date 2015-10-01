@@ -100,7 +100,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
     write_buf.put(SP.toByte)
     write_buf.put(key.getBytes("UTF-8"))
     write_buf.put(SP.toByte)
-    write_buf.put(48.toByte)
+    write_buf.put('0'.toByte)
     write_buf.put(SP.toByte)
     write_buf.put(request.expire.toString.getBytes("UTF-8"))
     write_buf.put(SP.toByte)
