@@ -40,8 +40,13 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
   sock.configureBlocking(false)
 
   private var timer = TimeoutScheduler.schedule(1000, this)
+
   private var requests : List[CacheRequest] = null
+
+  // buffer for the current value to be received
   private var cur_buf  : ElasticBuffer = null
+
+  // length in bytes of the currently received value
   private var cur_len  = 0
 
   def connect() : Unit = {
@@ -102,6 +107,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
 
     timer.start()
 
+    // "set $key 0 $expiry $len\r\n$buf\r\n"
     write_buf.clear
     write_buf.put("set".getBytes)
     write_buf.put(SP.toByte)
@@ -155,6 +161,12 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
     idle(event)
   }
 
+  /**
+    * @brief Callback, invoked when underlyingsocket is non-blocking readable.
+    *
+    * Processes any incoming data, i.e. the response from the underlying
+    * memcached server.
+    */
   def read(event: SelectionKey) : Unit = {
     val chunk = sock.read(read_buf)
 
@@ -201,6 +213,13 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
     }
   }
 
+  /**
+    * @brief Callback, invoked when underlying connection is non-blocking
+    *        writable.
+    *
+    * When all data has been flushed out to the memcached server,
+    * we will stop watching for WRITE events and switch back to READ.
+    */
   def write(event: SelectionKey) : Unit = {
     try {
       sock.write(write_buf)
@@ -287,6 +306,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
           return idle(last_event)
         }
 
+        // expect ["VALUE", key, 0, dataLength]
         if (parts.length != 4) {
           throw new ExecutionException("[Memcache] protocol error: " + cmd)
         }
