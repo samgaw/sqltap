@@ -27,8 +27,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
   private val MC_STATE_READ       = 7
   private val MC_STATE_CLOSE      = 8
 
-  private val MC_WRITE_BUF_LEN  = 65535
-  private val MC_READ_BUF_LEN   = (65535 * 8)
+  private val MC_WRITE_BUF_LEN  = (65535 * 3)
+  private val MC_READ_BUF_LEN   = (MC_WRITE_BUF_LEN * 8)
 
   private var state = MC_STATE_INIT
   private var last_event : SelectionKey = null
@@ -87,6 +87,13 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
     val len = buf.position
 
     request.ready()
+
+    if (len > MC_WRITE_BUF_LEN - 512) {
+      // some hacky safe margin
+      // minus 512 because of the first command line
+      return;
+    }
+
     buf.position(0)
     buf.limit(len)
 
