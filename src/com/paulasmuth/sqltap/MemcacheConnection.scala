@@ -283,9 +283,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
 
     try {
       if (requests != null) {
-        for (req <- requests) {
-          req.ready()
-        }
+        requests.foreach(_.ready())
       }
     } catch {
       case e: Exception => {
@@ -342,10 +340,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
         val parts = cmd.split(" ")
 
         if (parts.length == 1 && parts.head == "END") {
-          for (req <- requests) {
-            req.ready()
-          }
-
+          requests.foreach(_.ready())
           return idle(last_event)
         }
 
