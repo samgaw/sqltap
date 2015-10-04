@@ -12,20 +12,27 @@ import java.nio.channels.{SocketChannel,SelectionKey}
 import java.nio.{ByteBuffer,ByteOrder}
 import java.net.{InetSocketAddress,ConnectException}
 
+/**
+  * @param pool     pool that owns this connection
+  * @param hostname memcached-server's hostname
+  * @param port     memcached-server's port number
+  */
 class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port : Int) extends TimeoutCallback {
 
-  private val CR = 13
-  private val LF = 10
-  private val SP = 32
+  private val CR = 13.toByte
+  private val LF = 10.toByte
+  private val SP = 32.toByte
 
-  private val MC_STATE_INIT       = 0
-  private val MC_STATE_CONN       = 1
-  private val MC_STATE_IDLE       = 2
-  private val MC_STATE_CMD_DELETE = 4
-  private val MC_STATE_CMD_SET    = 5
-  private val MC_STATE_CMD_MGET   = 6
-  private val MC_STATE_READ       = 7
-  private val MC_STATE_CLOSE      = 8
+  // states:
+  // Uninitialized, Connecting, Idle, Cmd{Delete,Set,MGet}, Reading, Closed.
+  private val MC_STATE_INIT       = 0 // just created, no connect() invoked yet (idle)
+  private val MC_STATE_CONN       = 1 // just connected (idle)
+  private val MC_STATE_IDLE       = 2 // idle (after a command)
+  private val MC_STATE_CMD_DELETE = 4 //
+  private val MC_STATE_CMD_SET    = 5 //
+  private val MC_STATE_CMD_MGET   = 6 // executing a multi-key GET
+  private val MC_STATE_READ       = 7 //
+  private val MC_STATE_CLOSE      = 8 //
 
   private val MC_WRITE_BUF_LEN  = (65535 * 3)
   private val MC_READ_BUF_LEN   = (MC_WRITE_BUF_LEN * 8)
@@ -49,6 +56,11 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
   // length in bytes of the currently received value
   private var cur_len  = 0
 
+  /**
+   * @brief Asynchronously establishes connection to the Memcached server.
+   *
+   * @see ready(event: SelectionKey)
+   */
   def connect() : Unit = {
     Statistics.incr('memcache_connections_open)
 
@@ -63,6 +75,42 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
       .attach(this)
   }
 
+  /**
+   * @brief Callback, invoked upon non-blocking connect() completion.
+   *
+   * Moves MemcacheConnection state from MC_STATE_CONN into MC_STATE_IDLE state.
+   */
+  def ready(event: SelectionKey) : Unit = {
+    try {
+      sock.finishConnect
+    } catch {
+      case e: ConnectException => {
+        Logger.error("[Memcache] connection failed: " + e.toString, false)
+        return close(e)
+      }
+    }
+
+    idle(event)
+  }
+
+  /**
+   * @brief Puts connection into ready state and then back into the idle pool.
+   */
+  private def idle(event: SelectionKey) : Unit = {
+    timer.cancel()
+    state = MC_STATE_IDLE
+    event.interestOps(0)
+    last_event = event
+    requests = null
+    pool.ready(this)
+  }
+
+  /**
+   * @brief Retrieves values for multiple keys.
+   *
+   * @param keys list of keys to retrieve
+   * @param _requests list of CacheRequest objects to store the values to
+   */
   def execute_mget(keys: List[String], _requests: List[CacheRequest]) : Unit = {
     requests = _requests
 
@@ -75,12 +123,12 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
     write_buf.put("get".getBytes)
 
     for (key <- keys) {
-      write_buf.put(SP.toByte)
+      write_buf.put(SP)
       write_buf.put(key.getBytes("UTF-8"))
     }
 
-    write_buf.put(CR.toByte)
-    write_buf.put(LF.toByte)
+    write_buf.put(CR)
+    write_buf.put(LF)
     write_buf.flip
 
     state = MC_STATE_CMD_MGET
@@ -110,19 +158,19 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
     // "set $key 0 $expiry $len\r\n$buf\r\n"
     write_buf.clear
     write_buf.put("set".getBytes)
-    write_buf.put(SP.toByte)
+    write_buf.put(SP)
     write_buf.put(key.getBytes("UTF-8"))
-    write_buf.put(SP.toByte)
+    write_buf.put(SP)
     write_buf.put('0'.toByte)
-    write_buf.put(SP.toByte)
+    write_buf.put(SP)
     write_buf.put(request.expire.toString.getBytes("UTF-8"))
-    write_buf.put(SP.toByte)
+    write_buf.put(SP)
     write_buf.put(len.toString.getBytes("UTF-8"))
-    write_buf.put(CR.toByte)
-    write_buf.put(LF.toByte)
+    write_buf.put(CR)
+    write_buf.put(LF)
     write_buf.put(buf)
-    write_buf.put(CR.toByte)
-    write_buf.put(LF.toByte)
+    write_buf.put(CR)
+    write_buf.put(LF)
     write_buf.flip
 
     state = MC_STATE_CMD_SET
@@ -137,32 +185,18 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
 
     write_buf.clear
     write_buf.put("delete".getBytes)
-    write_buf.put(SP.toByte)
+    write_buf.put(SP)
     write_buf.put(key.getBytes("UTF-8"))
-    write_buf.put(CR.toByte)
-    write_buf.put(LF.toByte)
+    write_buf.put(CR)
+    write_buf.put(LF)
     write_buf.flip
 
     state = MC_STATE_CMD_DELETE
     last_event.interestOps(SelectionKey.OP_WRITE)
   }
 
-
-  def ready(event: SelectionKey) : Unit = {
-    try {
-      sock.finishConnect
-    } catch {
-      case e: ConnectException => {
-        Logger.error("[Memcache] connection failed: " + e.toString, false)
-        return close(e)
-      }
-    }
-
-    idle(event)
-  }
-
   /**
-    * @brief Callback, invoked when underlyingsocket is non-blocking readable.
+    * @brief Callback, invoked when underlying socket is non-blocking readable.
     *
     * Processes any incoming data, i.e. the response from the underlying
     * memcached server.
@@ -195,7 +229,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
         pos = cur
       } else {
         if (read_buf.get(cur) == LF) {
-          next(new String(read_buf.array, pos, cur - 1 - pos, "UTF-8"))
+          val headline = new String(read_buf.array, pos, cur - 1 - pos, "UTF-8")
+          next(headline)
           pos = cur + 1
         }
 
@@ -264,37 +299,29 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
     close()
   }
 
+  /** @brief Retrieves the corresponding CacheRequest to the given @p key.
+    *
+    * @return never null but the CacheRequest object.
+    */
+  private def get_request_by_key(key: String) : CacheRequest = {
+    for (req <- requests) {
+      if (req.buffer == null && req.key == key) {
+        return req
+      }
+    }
+    throw new ExecutionException("[Memcache] invalid response key: " + key)
+  }
+
   private def next(cmd: String) : Unit = {
     state match {
-
-      case MC_STATE_CMD_DELETE => {
-        cmd match {
-
-          case "DELETED" => {
-            idle(last_event)
-          }
-
-          case "NOT_FOUND" => {
-            idle(last_event)
-          }
-
-        }
+      case MC_STATE_CMD_DELETE => cmd match {
+        case "DELETED" => idle(last_event)
+        case "NOT_FOUND" => idle(last_event)
       }
-
-      case MC_STATE_CMD_SET => {
-        cmd match {
-
-          case "STORED" => {
-            idle(last_event)
-          }
-
-          case "NOT_STORED" => {
-            idle(last_event)
-          }
-
-        }
+      case MC_STATE_CMD_SET => cmd match {
+        case "STORED" => idle(last_event)
+        case "NOT_STORED" => idle(last_event)
       }
-
       case MC_STATE_CMD_MGET => {
         val parts = cmd.split(" ")
 
@@ -311,36 +338,17 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
           throw new ExecutionException("[Memcache] protocol error: " + cmd)
         }
 
-        for (req <- requests) {
-          if (req.buffer == null && req.key == parts(1)) {
-            val buf = new ElasticBuffer(65535 * 8)
-            req.buffer = buf
+        val req = get_request_by_key(parts(1))
+        cur_buf = new ElasticBuffer(65535 * 8)
+        cur_len = parts(3).toInt
+        req.buffer = cur_buf
 
-            cur_buf = buf
-            cur_len = parts(3).toInt
-
-            state = MC_STATE_READ
-            return
-          }
-        }
+        state = MC_STATE_READ
       }
-
       case _ => {
-        throw new ExecutionException(
-          "unexpected token " + cmd + " (" + state.toString + ")")
+        throw new ExecutionException("unexpected token " + cmd +
+                                     " (" + state.toString + ")")
       }
-
     }
   }
-
-  private def idle(event: SelectionKey) : Unit = {
-    timer.cancel()
-    state = MC_STATE_IDLE
-    event.interestOps(0)
-    last_event = event
-    requests = null
-    pool.ready(this)
-  }
-
-
 }
