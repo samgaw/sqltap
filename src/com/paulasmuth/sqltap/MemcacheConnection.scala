@@ -31,8 +31,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
   private val MC_STATE_CMD_DELETE = 4 //
   private val MC_STATE_CMD_SET    = 5 //
   private val MC_STATE_CMD_MGET   = 6 // executing a multi-key GET
-  private val MC_STATE_READ       = 7 //
-  private val MC_STATE_CLOSE      = 8 //
+  private val MC_STATE_READ       = 7 // reading an execute_mget value chunk
+  private val MC_STATE_CLOSE      = 8 // connection closed
 
   private val MC_WRITE_BUF_LEN  = (65535 * 3)
   private val MC_READ_BUF_LEN   = (MC_WRITE_BUF_LEN * 8)
@@ -318,6 +318,16 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
     throw new ExecutionException("[Memcache] invalid response key: " + key)
   }
 
+  /**
+   * @brief Processes a command response.
+   *
+   * @param the first line of the response
+   *
+   * Usually commands have a response of only one command, thus, they'll
+   * directly transition the connection to the idle-state.
+   *
+   * Other commands (such as GET) may require reading more data.
+   */
   private def next(cmd: String) : Unit = {
     state match {
       case MC_STATE_CMD_DELETE => cmd match {
