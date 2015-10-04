@@ -69,9 +69,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
 
     timer.start()
 
-    sock
-      .register(pool.loop, SelectionKey.OP_CONNECT)
-      .attach(this)
+    last_event = sock.register(pool.loop, SelectionKey.OP_CONNECT)
+    last_event.attach(this)
   }
 
   /**
@@ -89,17 +88,16 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
       }
     }
 
-    idle(event)
+    idle()
   }
 
   /**
    * @brief Puts connection into ready state and then back into the idle pool.
    */
-  private def idle(event: SelectionKey) : Unit = {
+  private def idle() : Unit = {
     timer.cancel()
     state = MC_STATE_IDLE
-    event.interestOps(0)
-    last_event = event
+    last_event.interestOps(0)
     requests = null
     pool.ready(this)
   }
@@ -274,7 +272,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
 
     if (write_buf.remaining == 0) {
       write_buf.clear
-      event.interestOps(SelectionKey.OP_READ)
+      last_event.interestOps(SelectionKey.OP_READ)
     }
   }
 
@@ -337,19 +335,19 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
   private def next(cmd: String) : Unit = {
     state match {
       case MC_STATE_CMD_DELETE => cmd match {
-        case "DELETED" => idle(last_event)
-        case "NOT_FOUND" => idle(last_event)
+        case "DELETED" => idle()
+        case "NOT_FOUND" => idle()
       }
       case MC_STATE_CMD_SET => cmd match {
-        case "STORED" => idle(last_event)
-        case "NOT_STORED" => idle(last_event)
+        case "STORED" => idle()
+        case "NOT_STORED" => idle()
       }
       case MC_STATE_CMD_MGET => {
         val parts = cmd.split(" ")
 
         if (parts.length == 1 && parts.head == "END") {
           requests.foreach(_.ready())
-          return idle(last_event)
+          return idle()
         }
 
         // expect ["VALUE", key, 0, dataLength]
