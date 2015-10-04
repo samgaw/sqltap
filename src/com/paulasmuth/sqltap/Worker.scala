@@ -80,6 +80,11 @@ class Worker() extends Thread {
             conn.write(event)
 
         } catch {
+          case e: NotFoundException => {
+            // but do not log it, as it's a client side error we do not care
+            // about in the server side log
+            conn.close(e)
+          }
           case e: Exception => {
             Logger.error("[SQL] exception: " + e.toString, false)
             Logger.exception(e, false)
