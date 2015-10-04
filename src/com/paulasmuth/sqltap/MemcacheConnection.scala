@@ -318,12 +318,10 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
     * @return never null but the CacheRequest object.
     */
   private def get_request_by_key(key: String) : CacheRequest = {
-    for (req <- requests) {
-      if (req.buffer == null && req.key == key) {
-        return req
-      }
+    requests.find(r => r.key == key && r.buffer == null) match {
+      case Some(r) => r
+      case None => throw new ExecutionException("[Memcache] invalid response key: " + key)
     }
-    throw new ExecutionException("[Memcache] invalid response key: " + key)
   }
 
   /**
