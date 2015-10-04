@@ -112,6 +112,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
    * @param _requests list of CacheRequest objects to store the values to
    */
   def execute_mget(keys: List[String], _requests: List[CacheRequest]) : Unit = {
+    Logger.debug("[Memcache] mget: " + keys.mkString(", "))
+
     requests = _requests
 
     if (state != MC_STATE_IDLE)
@@ -136,6 +138,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
   }
 
   def execute_set(key: String, request: CacheStoreRequest) : Unit = {
+    Logger.debug("[Memcache] store: " + key)
+
     val buf = request.buffer.buffer
     val len = buf.position
 
@@ -178,6 +182,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
   }
 
   def execute_delete(key: String) : Unit = {
+    Logger.debug("[Memcache] delete: " + key)
+
     if (state != MC_STATE_IDLE)
       throw new ExecutionException("memcache connection busy")
 

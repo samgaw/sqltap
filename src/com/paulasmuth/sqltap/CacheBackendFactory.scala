@@ -8,25 +8,16 @@
 package com.paulasmuth.sqltap
 
 object CacheBackendFactory {
-
   def get(worker: Worker) : CacheBackend = {
     val name = Config.get('cache_backend)
 
     val backend = name match {
-
-      case "memcache" =>
-        new MemcacheConnectionPool()
-
-      case "noop" =>
-        new NoopCacheBackend()
-
-      case _ =>
-        throw new ParseException("unknown cache backend: " + name)
-
+      case "memcache" => new MemcacheConnectionPool()
+      case "noop" => new NoopCacheBackend()
+      case _ => throw new ParseException("unknown cache backend: " + name)
     }
 
     backend.loop = worker.loop
     backend
   }
-
 }
