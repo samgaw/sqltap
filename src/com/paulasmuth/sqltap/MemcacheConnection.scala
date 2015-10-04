@@ -18,7 +18,6 @@ import java.net.{InetSocketAddress,ConnectException}
   * @param port     memcached-server's port number
   */
 class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port : Int) extends TimeoutCallback {
-
   private val CR = 13.toByte
   private val LF = 10.toByte
   private val SP = 32.toByte
@@ -53,7 +52,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
   // buffer for the current value to be received
   private var cur_buf  : ElasticBuffer = null
 
-  // length in bytes of the currently received value
+  // length in bytes of the currently received value still to be processed.
   private var cur_len  = 0
 
   /**
@@ -216,18 +215,20 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
       return
     }
 
-    var cur = 0
-    var pos = 0
+    var cur = 0 //!< the offset in read_buf currently being parsed
+    var pos = 0 //!< offset of the first byte of the currently processed chunk (message line or value payload)
 
     while (cur < read_buf.position) {
       if (state == MC_STATE_READ) {
+        // process response body chunk, from pos to min(maxpos, pos + cur_len)
         cur = math.min(read_buf.position, pos + cur_len)
 
         cur_len -= cur - pos
         cur_buf.write(read_buf.array, pos, cur - pos)
 
+        // GET-value response chunk fully consumed?
         if (cur_len == 0) {
-          cur += 2
+          cur += 2 // skip "\r\n"
           cur_buf.buffer.flip()
           state = MC_STATE_CMD_MGET
         }
@@ -277,6 +278,11 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
     }
   }
 
+  /**
+    * @brief Closes this connection and notifies the owning pool about the close.
+    *
+    * @param err The exception that potentially caused the close.
+    */
   def close(err: Throwable = null) : Unit = {
     if (state == MC_STATE_CLOSE)
       return
@@ -298,6 +304,10 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
     Statistics.decr('memcache_connections_open)
   }
 
+  /** @brief Callback, invoked upon I/O completion timeout.
+    *
+    * Closes the memcache connection.
+    */
   def timeout() : Unit = {
     Logger.error("[Memcache] connection timed out...", false)
     close()
@@ -350,8 +360,8 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
         }
 
         val req = get_request_by_key(parts(1))
-        cur_buf = new ElasticBuffer(65535 * 8)
         cur_len = parts(3).toInt
+        cur_buf = new ElasticBuffer(65535 * 8) // FIXME why not of size cur_len?
         req.buffer = cur_buf
 
         state = MC_STATE_READ
