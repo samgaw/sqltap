@@ -213,43 +213,44 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
       return
     }
 
-    var cur = 0 //!< the offset in read_buf currently being parsed
-    var pos = 0 //!< offset of the first byte of the currently processed chunk (message line or value payload)
-
-    while (cur < read_buf.position) {
+    while (read_buf.position > 0) {
       if (state == MC_STATE_READ) {
         // process response body chunk, from pos to min(maxpos, pos + cur_len)
-        cur = math.min(read_buf.position, pos + cur_len)
+        val cur_chunk_len = math.min(read_buf.position, cur_len)
 
-        cur_len -= cur - pos
-        cur_buf.write(read_buf.array, pos, cur - pos)
+        cur_len -= cur_chunk_len
+        cur_buf.write(read_buf.array, 0, cur_chunk_len)
 
         // GET-value response chunk fully consumed?
         if (cur_len == 0) {
-          cur += 2 // skip "\r\n"
+          cur_buf.retrieve.limit(cur_buf.retrieve.limit() - 2)
           cur_buf.buffer.flip()
           state = MC_STATE_CMD_MGET
         }
 
-        pos = cur
+        read_buf.limit(read_buf.position)
+        read_buf.position(cur_chunk_len)
+        read_buf.compact()
       } else {
-        if (read_buf.get(cur) == LF) {
-          val headline = new String(read_buf.array, pos, cur - 1 - pos, "UTF-8")
-          next(headline)
-          pos = cur + 1
+        var found = false;
+        var i = 0;
+
+        while (!found && i < read_buf.position) {
+          if (read_buf.get(i) == LF) {
+            val headline = new String(read_buf.array, 0, i - 1, "UTF-8")
+            read_buf.limit(read_buf.position)
+            read_buf.position(i + 1)
+            read_buf.compact()
+            next(headline)
+            found = true;
+          }
+          i = i + 1;
         }
 
-        cur += 1
+        if (!found) {
+          return;
+        }
       }
-    }
-
-    if (cur < read_buf.position) {
-      println("READ REMAINING")
-      read_buf.limit(read_buf.position)
-      read_buf.position(cur)
-      read_buf.compact()
-    } else {
-      read_buf.clear()
     }
   }
 
@@ -356,7 +357,7 @@ class MemcacheConnection(pool: MemcacheConnectionPool, hostname : String, port :
         }
 
         val req = get_request_by_key(parts(1))
-        cur_len = parts(3).toInt
+        cur_len = parts(3).toInt + 2
         cur_buf = new ElasticBuffer(65535 * 8) // FIXME why not of size cur_len?
         req.buffer = cur_buf
 
