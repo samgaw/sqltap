@@ -28,7 +28,7 @@ class GZIPTranscoder(buffer: ElasticBuffer) {
     buf.put(target.toByteArray())
   }
 
-  def decode() : Unit = try {
+  def decode() : Unit = {
     val buf    = buffer.retrieve()
     val source = new ByteArrayInputStream(buf.array.clone())
     val gzip   = new GZIPInputStream(source)
@@ -50,7 +50,6 @@ class GZIPTranscoder(buffer: ElasticBuffer) {
     gzip.close
     source.close
   }
-
 }
 
 
