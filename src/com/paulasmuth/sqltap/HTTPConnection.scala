@@ -216,20 +216,26 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     Statistics.incr('http_requests_per_second)
   }
 
-  private def execute_ping() : Unit = {
+  private def execute_text(code: Integer, text: String) : Unit = {
     val http_buf = new HTTPWriter(buf)
     buf.clear
 
-    http_buf.write_status(200)
-    http_buf.write_content_length(6)
+    val body = text.getBytes
+
+    http_buf.write_status(code)
+    http_buf.write_content_length(body.length)
     http_buf.write_default_headers()
     http_buf.finish_headers()
 
-    buf.put("pong\r\n".getBytes)
+    buf.put(body)
     buf.flip
 
     worker.requests_success.incrementAndGet()
     flush()
+  }
+
+  private def execute_ping() : Unit = {
+    execute_text(200, "pong\r\n")
   }
 
   private def execute_request(params: List[String]) : Unit = {
