@@ -18,6 +18,11 @@ object QueryParser {
   private val PARSER_STATE_BODY   = 5
 
   def parse(stack: InstructionStack, qry: String) : Unit = {
+
+    if (Config.get('log_queries).equals("true")) {
+      Logger.info("[QueryParser] parse: " + qry)
+    }
+
     var args  = new ListBuffer[String]()
     var state = PARSER_STATE_NEXT
 

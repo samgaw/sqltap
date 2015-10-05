@@ -209,6 +209,16 @@ class HTTPConnection(sock: SocketChannel, worker: Worker) extends ReadyCallback[
     else if (route.length > 1 && route.head == "expire")
       execute_expire(route.tail)
 
+    else if (route.length == 1 && route.head == "log_queries") {
+      Config.set('log_queries, "true")
+      execute_text(200, "sqltap query logging enabled\r\n")
+    }
+
+    else if (route.length == 1 && route.head == "no_log_queries") {
+      Config.set('log_queries, "false")
+      execute_text(200, "sqltap query logging disabled\r\n")
+    }
+
     else
       http_error(404, "not found")
 
