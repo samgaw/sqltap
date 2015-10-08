@@ -49,6 +49,10 @@ class SQLQuery(query_str: String) extends TimeoutCallback {
 
     if (Config.has_key('log_slow_queries) &&
         runtime_millis >= Config.get('log_slow_queries).toInt) {
+      Statistics.incr('sql_slow_queries_total)
+      Statistics.incr('sql_slow_queries_per_second)
+      Statistics.incr('sql_slow_queries_time_mean, runtime_millis)
+
       Logger.log("[SQL] [Slow Query] (" + runtime_millis + "ms): " + query)
     }
   }
