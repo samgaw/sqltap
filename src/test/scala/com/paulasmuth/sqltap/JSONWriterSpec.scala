@@ -24,6 +24,11 @@ class JSONWriterSpec extends UnitSpec {
       val str = write_escaped(Array(0x5C.toByte))
       assert(str == "\\\\")
     }
+
+    it("0xB -> '\\u000b'") {
+      val str = write_escaped(Array(0xB.toByte))
+      assert(str == "\\u000b")
+    }
   }
 
   def buffer_to_string(buf: ByteBuffer) : String = {
