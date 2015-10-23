@@ -8,8 +8,6 @@ version := "0.8.0"
 
 mainClass in (Compile, run) := Some("com.paulasmuth.sqltap.SQLTap")
 
-scalaSource in Compile <<= baseDirectory(_ / "src")
-
 scalaVersion := "2.11.7"
 
 assemblySettings
