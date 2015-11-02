@@ -80,6 +80,9 @@ object SQLTap{
       else if ((args(n) == "-t") || (args(n) == "--threads"))
         { Config.set('threads, args(n+1)); n += 2 }
 
+      else if (args(n) == "--log-queries")
+        { Config.set('log_queries, "true"); n += 1 }
+
       else if ((args(n) == "-c") || (args(n) == "--config"))
         { Config.set('config_base, args(n+1)); n += 2 }
 

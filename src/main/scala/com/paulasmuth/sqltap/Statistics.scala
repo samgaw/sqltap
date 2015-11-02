@@ -21,6 +21,9 @@ object Statistics {
     'sql_requests_total           -> new IntegralStatistic,
     'sql_requests_per_second      -> new DeltaStatistic,
     'sql_request_time_mean        -> new MeanStatistic,
+    'sql_slow_queries_total       -> new IntegralStatistic,
+    'sql_slow_queries_per_second  -> new DeltaStatistic,
+    'sql_slow_queries_time_mean   -> new MeanStatistic,
     'memcache_requests_total      -> new IntegralStatistic,
     'memcache_requests_per_second -> new DeltaStatistic,
     'memcache_connections_open    -> new IntegralStatistic

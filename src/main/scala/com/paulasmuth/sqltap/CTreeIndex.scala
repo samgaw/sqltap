@@ -36,11 +36,12 @@ object CTreeIndex {
       score += ctree.base_score
 
       Logger.debug("CTree: evaluating candidate: '" + ctree.name +
-       "' (score: " + score + ", cost: " + cost + ") for: " + root.resource_name)
+                   "' (score: " + score + ", cost: " + cost + ") for: " +
+                   root.resource_name)
 
-      var matches = (cost == 0 && winner_cost > 0)
-      matches   ||= (score > top_score && winner_cost != 0)
-      matches   ||= (score == top_score && cost > winner_cost)
+      val matches = (cost == 0 && winner_cost > 0) ||
+                    (score > top_score && winner_cost != 0) ||
+                    (score == top_score && cost > winner_cost)
 
       if (matches) {
         winner = ctree

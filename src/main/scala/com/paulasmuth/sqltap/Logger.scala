@@ -19,11 +19,24 @@ object Logger {
     println("[" + df.format(new Date()) + "] " + msg)
   }
 
+  def fatal(msg: String) : Unit = {
+    log("[FATAL] " + msg)
+    System.exit(1)
+  }
+
   def error(msg: String, fatal: Boolean) : Unit = {
     log("[ERROR] " + msg)
 
     if (fatal)
       System.exit(1)
+  }
+
+  def notice(msg: String) : Unit = {
+    log("[NOTICE] " + msg)
+  }
+
+  def info(msg: String) : Unit = {
+    log("[INFO] " + msg)
   }
 
   def debug(msg: String) : Unit = {

@@ -27,6 +27,7 @@ object Config {
     'memcache_host            -> "127.0.0.1",
     'memcache_port            -> "11211",
     'threads                  -> "4",
+    'log_queries              -> "false",
     'expiration_handler       -> "purge",
     'cache_backend            -> "memcache"
   )
