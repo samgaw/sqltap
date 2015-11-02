@@ -31,7 +31,7 @@ class ResourceManifest(doc: xml.Node) {
     elem.attr("id_field", false, "id")
 
   val default_order : String =
-    elem.attr("default_order", false, id_field + " DESC")
+    elem.attr("default_order", false, "`" + id_field + "` DESC")
 
   val relations =
     ((List[ResourceRelation]() /: (doc \ "relation"))
