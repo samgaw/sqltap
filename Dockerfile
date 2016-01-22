@@ -25,6 +25,7 @@ ENV SQLTAP_HTTP_PORT="3000" \
     SQLTAP_THREADS="16" \
     SQLTAP_JARFILE="/opt/sqltap/target/scala-2.11/sqltap-${SQLTAP_VERSION}.jar" \
     SQLTAP_SCHEMA="/var/schema.xml" \
+    SCHEMA_URL="" \
     SQLTAP_OPTS="" \
     MYSQL_HOST="127.0.0.1" \
     MYSQL_PORT="3306" \
