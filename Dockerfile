@@ -18,7 +18,6 @@ ENV SQLTAP_HTTP_PORT="3000" \
     JMX_PORT="9191" \
     RMI_BIND="127.0.0.1" \
     JAVA_XMX="16384M" \
-    HOSTNAME="sqltap1" \
     CACHE_BACKEND="memcache" \
     MEMCACHE_HOST="127.0.0.1" \
     MEMCACHE_PORT="11211" \
