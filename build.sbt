@@ -12,7 +12,7 @@ scalaVersion := "2.11.7"
 
 assemblySettings
 
-jarName in assembly := { s"${name.value.toLowerCase}-${version.value}.jar" }
+jarName in assembly := { s"${name.value.toLowerCase}.jar" }
 
 fork in run := true
 
