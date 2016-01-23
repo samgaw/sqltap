@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-SQLTAP_JARFILE="${1}"
+SQLTAP_JARFILE="/usr/lib/sqltap.jar"
 
 if [[ "$SCHEMA_URL" != "" ]]; then
   curl -sL "$SCHEMA_URL" -o "${SQLTAP_SCHEMA}"

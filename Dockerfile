@@ -2,7 +2,6 @@ FROM java:8
 MAINTAINER DaWanda <cupcakes@dawanda.com>
 
 ARG SBT_VERSION="0.13.8"
-ARG SQLTAP_JARFILE="/usr/lib/sqltap.jar"
 
 ENV SQLTAP_HTTP_PORT="3000" \
     SQLTAP_THREADS="16" \
@@ -35,9 +34,9 @@ ADD bootup.sh /bootup.sh
 
 RUN cd /usr/src && \
     sbt assembly && \
-    cp -vpi /usr/src/target/scala-*/sqltap.jar $SQLTAP_JARFILE && \
+    cp -vpi /usr/src/target/scala-*/sqltap.jar /usr/lib/sqltap.jar && \
     rm -rf /usr/src/*
 
 EXPOSE $SQLTAP_HTTP_PORT
 
-CMD ["/bootup.sh", "$SQLTAP_JARFILE"]
+CMD ["/bootup.sh"]
