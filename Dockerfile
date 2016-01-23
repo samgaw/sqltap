@@ -40,4 +40,4 @@ RUN cd /usr/src && \
 
 EXPOSE $SQLTAP_HTTP_PORT
 
-CMD ["/bootup.sh"]
+CMD ["/bootup.sh", "$SQLTAP_JARFILE"]

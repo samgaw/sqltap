@@ -1,5 +1,7 @@
 #!/bin/bash
-set -e
+set -ex
+
+SQLTAP_JARFILE="${1}"
 
 if [[ "$SCHEMA_URL" != "" ]]; then
   curl -sL "$SCHEMA_URL" -o "${SQLTAP_SCHEMA}"
@@ -28,7 +30,6 @@ require_args SQLTAP_SCHEMA \
              MYSQL_PORT \
              SQLTAP_HTTP_PORT \
              SQLTAP_THREADS \
-             SQLTAP_SCHEMA \
              SCHEMA_URL \
              MYSQL_HOST \
              MYSQL_PORT \
@@ -42,7 +43,7 @@ require_args SQLTAP_SCHEMA \
              CACHE_BACKEND
 
 opts=""
-opts="$opts --config '${SQLTAP_SCHEMA}'"
+opts="$opts --config ${SQLTAP_SCHEMA}"
 opts="$opts --http ${SQLTAP_HTTP_PORT}"
 opts="$opts --disable-keepalive"
 opts="$opts -t ${SQLTAP_THREADS}"
