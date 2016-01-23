@@ -28,11 +28,15 @@ ADD https://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb /tmp/sbt.deb
 RUN dpkg -i /tmp/sbt.deb && rm -f /tmp/sbt.deb
 RUN apt-get update && apt-get install sbt
 
-ADD . /opt/sqltap
-RUN cd /opt/sqltap && \
+ADD project /usr/src/project/
+ADD src /usr/src/src/
+ADD build.sbt /usr/src/
+ADD bootup.sh /bootup.sh
+
+RUN cd /usr/src && \
     sbt assembly && \
-    cp -vpi /opt/sqltap/target/scala-*/sqltap.jar $SQLTAP_JARFILE && \
-    rm -rf /opt/sqltap
+    cp -vpi /usr/src/target/scala-*/sqltap.jar $SQLTAP_JARFILE && \
+    rm -rf /usr/src/*
 
 EXPOSE $SQLTAP_HTTP_PORT
 
