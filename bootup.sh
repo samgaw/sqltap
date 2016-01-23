@@ -30,7 +30,6 @@ require_args SQLTAP_SCHEMA \
              SQLTAP_THREADS \
              SQLTAP_SCHEMA \
              SCHEMA_URL \
-             SQLTAP_OPTS \
              MYSQL_HOST \
              MYSQL_PORT \
              MYSQL_USER \
