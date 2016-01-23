@@ -36,4 +36,4 @@ RUN cd /opt/sqltap && \
 
 EXPOSE $SQLTAP_HTTP_PORT
 
-CMD ["/opt/sqltap/sqltap.sh"]
+CMD ["/bootup.sh"]
