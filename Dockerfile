@@ -30,7 +30,6 @@ RUN apt-get update && apt-get install sbt
 ADD project /usr/src/project/
 ADD src /usr/src/src/
 ADD build.sbt /usr/src/
-ADD bootup.sh /bootup.sh
 
 RUN cd /usr/src && \
     sbt assembly && \
@@ -39,4 +38,5 @@ RUN cd /usr/src && \
 
 EXPOSE $SQLTAP_HTTP_PORT
 
+ADD bootup.sh /bootup.sh
 CMD ["/bootup.sh"]
