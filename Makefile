@@ -17,6 +17,6 @@ push: image
 clean:
 	rm -rf target
 
-.PHONY: image clean
+.PHONY: image clean push
 
 # vim:ts=8:noet
