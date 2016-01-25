@@ -9,7 +9,7 @@ fi
 
 require_arg() {
   local name="$1"
-  local val=`eval "echo \\\$${name}"`
+  local val="${!name}"
 
   echo "${name}: ${val}"
 
