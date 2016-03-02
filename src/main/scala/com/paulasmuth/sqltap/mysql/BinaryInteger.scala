@@ -18,4 +18,13 @@ object BinaryInteger {
     return value
   }
 
+  def readLong(data: Array[Byte], pos: Int, len: Int) : Long = {
+    var value : Long = 0
+
+    for (n <- (0 until len))
+      value += (data(pos + n) & 0x000000ff) << (8*n)
+
+    return value
+  }
+
 }

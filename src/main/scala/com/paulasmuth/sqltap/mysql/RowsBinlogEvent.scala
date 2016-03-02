@@ -65,8 +65,8 @@ trait RowsBinlogEvent extends BinlogEvent {
     num._1
   }
 
-  def read_int(bytes: Int) : Int = {
-    val num = BinaryInteger.read(data, cur, bytes)
+  def read_int(bytes: Int) : Long = {
+    val num = BinaryInteger.readLong(data, cur, bytes)
     cur += bytes
     num
   }
