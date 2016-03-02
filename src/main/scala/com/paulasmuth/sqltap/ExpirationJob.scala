@@ -34,7 +34,7 @@ class ExpirationJob(worker: Worker, ctree: CTree) extends ReadyCallback[Record] 
    *
    * @param record the primary record id
    */
-  def execute(record_id: Int) : Unit = {
+  def execute(record_id: Long) : Unit = {
     val primary_id = ctree.resource.id_field
 
     Logger.debug(

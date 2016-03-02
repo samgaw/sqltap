@@ -14,7 +14,7 @@ class RecordLookupJob(worker: Worker, resource: ResourceManifest) extends ReadyC
 
   private val callbacks = new ListBuffer[ReadyCallback[Record]]()
 
-  def execute(record_id: Int) : Unit = {
+  def execute(record_id: Long) : Unit = {
     if (callbacks.length == 0) {
       return // RecordLookupJob is a noop without callbacks
     }
