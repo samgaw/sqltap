@@ -26,7 +26,7 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
   var order      : String = null
 
   var join_field  : String  = null
-  var join_id     : Int     = 0
+  var join_id     : Long    = 0
   var allow_empty : Boolean = false
 
   def execute(_worker: Worker) : Unit = {
@@ -66,7 +66,7 @@ class FindSingleInstruction extends SQLInstruction with CTreeInstruction {
           }
 
           state = INS_STATE_READY
-          join_id = join_id_str.toInt
+          join_id = join_id_str.toLong
 
           if (join_id == 0) {
             state = INS_STATE_DONE

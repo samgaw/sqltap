@@ -12,7 +12,7 @@ object SQLBuilder {
   def select(
     res: ResourceManifest,
     id_field: String,
-    id: Int,
+    id: Long,
     fields: List[String],
     cond: String,
     order: String,
@@ -45,7 +45,7 @@ object SQLBuilder {
   def count(
     res: ResourceManifest,
     id_field: String,
-    id: Int,
+    id: Long,
     cond: String
   ) : String = (
 

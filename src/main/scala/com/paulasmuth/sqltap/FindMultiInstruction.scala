@@ -29,7 +29,7 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
   var offset     : String  = null
   var expanded   : Boolean = false
 
-  var join_id : Int = 0
+  var join_id : Long = 0
   var join_conditions : String = null
 
   def execute(_worker: Worker) : Unit = {
@@ -75,7 +75,7 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
 
           else if (relation.join_field_local != null && prev.is_finished) {
             state = INS_STATE_READY
-            join_id = prev.record.get(relation.join_field_local).toInt
+            join_id = prev.record.get(relation.join_field_local).toLong
           }
         }
 
@@ -186,7 +186,7 @@ class FindMultiInstruction extends SQLInstruction with CTreeInstruction  {
       var found = false
 
       val this_id = row(
-        query.columns.indexOf(relation.resource.id_field)).toInt
+        query.columns.indexOf(relation.resource.id_field)).toLong
 
       while (!found && n > 0) {
         val this_ins = next(n - 1)

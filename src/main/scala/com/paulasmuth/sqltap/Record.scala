@@ -15,16 +15,16 @@ class Record(_resource: ResourceManifest) {
   var fields  = ListBuffer[String]()
   var data    = ListBuffer[String]()
 
-  def id() : Int = {
-    get(resource.id_field).toInt
+  def id() : Long = {
+    get(resource.id_field).toLong
   }
 
-  def set_id(id: Int) : Unit = {
+  def set_id(id: Long) : Unit = {
     set(resource.id_field, id.toString)
   }
 
   def set_id(id: String) : Unit = {
-    set_id(id.toInt)
+    set_id(id.toLong)
   }
 
   def has_id() : Boolean = {

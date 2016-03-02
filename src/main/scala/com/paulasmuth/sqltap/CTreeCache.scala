@@ -46,7 +46,7 @@ object CTreeCache {
    * @param record_id the primary id of the resource/record to be expired
    * @param resource_name the name of the resource to be expired
    */
-  def expire(worker: Worker, resource_name: String, record_id: Int) : Unit = {
+  def expire(worker: Worker, resource_name: String, record_id: Long) : Unit = {
     if (!Manifest.has_resource(resource_name))
       throw new ParseException("unknown resource: " + resource_name)
 

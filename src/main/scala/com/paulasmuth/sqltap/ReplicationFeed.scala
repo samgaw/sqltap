@@ -29,7 +29,7 @@ object ReplicationFeed extends Worker with AbstractSQLConnectionPool {
 
         CTreeCache.expire(this,
           Manifest.resource_name_for_table(evt.table_name),
-          evt.primary_key.toInt)
+          evt.primary_key.toLong)
       }
     }
 
