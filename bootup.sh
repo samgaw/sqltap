@@ -69,6 +69,17 @@ fi
 
 opts="$opts ${SQLTAP_OPTS}"
 
+report_to_statsd() {
+  while sleep 1; do
+    curl "http://localhost:${SQLTAP_HTTP_PORT}/stats" | \
+        sed -e 's/,/\n/g' | \
+        sed -e 's/^[^"]*"//g' -e 's/": *"/:/g' -e 's/".*$//g' -e 's/^/myprefix./g' | \
+        nc -u -w0 ${STATSD_HOST} ${STATSD_PORT}
+  done
+}
+
+report_to_statsd&
+
 exec java \
     -Djava.rmi.server.hostname="${RMI_BIND}" \
     -Dcom.sun.management.jmxremote \
