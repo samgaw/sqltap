@@ -177,6 +177,8 @@ class SQLConnection(pool: AbstractSQLConnectionPool) extends TimeoutCallback {
 
     if (cur_qry != null)
       cur_qry.error(err)
+    else
+      Logger.exception(err, false)
 
     state = SQL_STATE_CLOSE
     heartbeat.cancel()

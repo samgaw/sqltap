@@ -25,7 +25,7 @@ ENV SQLTAP_HTTP_PORT="3000" \
 
 ADD https://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb /tmp/sbt.deb
 RUN dpkg -i /tmp/sbt.deb && rm -f /tmp/sbt.deb
-RUN apt-get update && apt-get install sbt
+RUN sbt
 
 ADD project /usr/src/project/
 ADD src /usr/src/src/
