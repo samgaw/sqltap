@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 SQLTAP_JARFILE="/usr/lib/sqltap.jar"
 
@@ -75,7 +75,7 @@ report_to_statsd() {
   fi
   sleep 10 # give some time to start sqltap
   while sleep 1; do
-    curl "http://localhost:${SQLTAP_HTTP_PORT}/stats" | \
+    curl -s "http://localhost:${SQLTAP_HTTP_PORT}/stats" | \
         sed -e 's/,/\n/g' | \
         sed -e 's/^[^"]*"//g' -e 's/": *"/:/g' -e 's/".*$//g' -e 's/^/'$STATSD_PREFIX'./g' -e 's/\.[^:.]*$//' -e 's/$/|c/' > \
         /dev/udp/${STATSD_HOST}/${STATSD_PORT}
