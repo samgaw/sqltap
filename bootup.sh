@@ -70,11 +70,15 @@ fi
 opts="$opts ${SQLTAP_OPTS}"
 
 report_to_statsd() {
+  if [[ -z "$STATSD_HOST" ]] || [[ -z "$STATSD_PORT" ]]; then
+    return
+  fi
+  sleep 10 # give some time to start sqltap
   while sleep 1; do
     curl "http://localhost:${SQLTAP_HTTP_PORT}/stats" | \
         sed -e 's/,/\n/g' | \
-        sed -e 's/^[^"]*"//g' -e 's/": *"/:/g' -e 's/".*$//g' -e 's/^/myprefix./g' | \
-        nc -u -w0 ${STATSD_HOST} ${STATSD_PORT}
+        sed -e 's/^[^"]*"//g' -e 's/": *"/:/g' -e 's/".*$//g' -e 's/^/'$STATSD_PREFIX'./g' -e 's/\.[^:.]*$//' -e 's/$/|c/' > \
+        /dev/udp/${STATSD_HOST}/${STATSD_PORT}
   done
 }
 

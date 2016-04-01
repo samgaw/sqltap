@@ -21,7 +21,8 @@ ENV SQLTAP_HTTP_PORT="3000" \
     MEMCACHE_HOST="" \
     MEMCACHE_PORT="11211" \
     MEMCACHE_QUEUELEN="8192" \
-    MEMCACHE_NUMCONNS="20"
+    MEMCACHE_NUMCONNS="20" \
+    STATSD_PREFIX="sqltap"
 
 ADD https://dl.bintray.com/sbt/debian/sbt-$SBT_VERSION.deb /tmp/sbt.deb
 RUN dpkg -i /tmp/sbt.deb && rm -f /tmp/sbt.deb
